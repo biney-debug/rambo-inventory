@@ -1,0 +1,9 @@
+{
+  "appId": "com.rambo.taller",
+  "appName": "RAMBO",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
+}

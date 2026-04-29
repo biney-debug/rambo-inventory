@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RAMBO</string>
+    <string name="title_activity_main">RAMBO</string>
+    <string name="package_name">com.rambo.taller</string>
+    <string name="custom_url_scheme">com.rambo.taller</string>
+</resources>
