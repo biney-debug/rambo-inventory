@@ -26,3 +26,9 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Capacitor / Node
+node_modules/
+android/
+www/
+package-lock.json
