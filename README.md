@@ -197,4 +197,4 @@ src/main/java/com/rambo/
 
 ## About This Project
 
-Built for my father's mechanic shop to replace WhatsApp-based inventory tracking with a real system. The shop needed a way to know what parts were in stock, how much they cost, what the profit margin was on each sale, and when to reorder. This backend powers a web frontend and an Android app (via Capacitor) that runs on a phone kept at the shop counter.
+Built by Miguel Rolando Salas Guillen for my father's mechanic shop to replace WhatsApp-based inventory tracking with a real system. The shop needed a way to know what parts were in stock, how much they cost, what the profit margin was on each sale, and when to reorder. This backend powers a web frontend and an Android app (via Capacitor) that runs on a phone kept at the shop counter.
