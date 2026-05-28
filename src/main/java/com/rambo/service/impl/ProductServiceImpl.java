@@ -10,6 +10,8 @@ import com.rambo.repository.ProductRepository;
 import com.rambo.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,12 +52,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponseDTO> findAll() {
-        log.debug("Fetching all products");
-        return productRepository.findAllByOrderByNameAsc()
-                .stream()
-                .map(productMapper::toResponseDTO)
-                .toList();
+    public Page<ProductResponseDTO> findAll(Pageable pageable) {
+        log.debug("Fetching all products page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return productRepository.findAllByOrderByNameAsc(pageable)
+                .map(productMapper::toResponseDTO);
     }
 
     @Override

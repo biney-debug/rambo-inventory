@@ -12,6 +12,8 @@ import com.rambo.repository.SaleRepository;
 import com.rambo.service.SaleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,19 +80,17 @@ public class SaleServiceImpl implements SaleService {
     @Transactional(readOnly = true)
     public SaleResponseDTO findById(Long id) {
         log.debug("Fetching sale ID: {}", id);
-        Sale sale = saleRepository.findById(id)
+        Sale sale = saleRepository.findByIdWithProduct(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with ID: " + id));
         return saleMapper.toResponseDTO(sale);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<SaleResponseDTO> findAll() {
-        log.debug("Fetching all sales");
-        return saleRepository.findAll()
-                .stream()
-                .map(saleMapper::toResponseDTO)
-                .toList();
+    public Page<SaleResponseDTO> findAll(Pageable pageable) {
+        log.debug("Fetching all sales page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return saleRepository.findAllWithProduct(pageable)
+                .map(saleMapper::toResponseDTO);
     }
 
     @Override

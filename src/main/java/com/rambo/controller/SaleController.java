@@ -5,6 +5,9 @@ import com.rambo.dto.SaleResponseDTO;
 import com.rambo.service.SaleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +21,11 @@ public class SaleController {
 
     private final SaleService saleService;
 
-    // GET /api/sales → all sales
+    // GET /api/sales?page=0&size=20 → paginated list
     @GetMapping
-    public ResponseEntity<List<SaleResponseDTO>> listAll() {
-        return ResponseEntity.ok(saleService.findAll());
+    public ResponseEntity<Page<SaleResponseDTO>> listAll(
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(saleService.findAll(pageable));
     }
 
     // GET /api/sales/{id} → single sale detail

@@ -2,6 +2,8 @@ package com.rambo.service;
 
 import com.rambo.dto.ProductRequestDTO;
 import com.rambo.dto.ProductResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -11,7 +13,7 @@ public interface ProductService {
 
     ProductResponseDTO findById(Long id);
 
-    List<ProductResponseDTO> findAll();
+    Page<ProductResponseDTO> findAll(Pageable pageable);
 
     List<ProductResponseDTO> findByCategory(String category);
 

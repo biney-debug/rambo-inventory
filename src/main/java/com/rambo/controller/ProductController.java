@@ -6,6 +6,9 @@ import com.rambo.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +22,11 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // GET /api/products → list all products
+    // GET /api/products?page=0&size=20 → paginated list
     @GetMapping
-    public ResponseEntity<List<ProductResponseDTO>> listAll() {
-        return ResponseEntity.ok(productService.findAll());
+    public ResponseEntity<Page<ProductResponseDTO>> listAll(
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        return ResponseEntity.ok(productService.findAll(pageable));
     }
 
     // GET /api/products/{id} → get one product

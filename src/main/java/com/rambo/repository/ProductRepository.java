@@ -1,6 +1,8 @@
 package com.rambo.repository;
 
 import com.rambo.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,8 +23,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Filter by category
     List<Product> findByCategoryIgnoreCaseOrderByNameAsc(String category);
 
-    // All products sorted alphabetically
-    List<Product> findAllByOrderByNameAsc();
+    // All products sorted alphabetically (paginated)
+    Page<Product> findAllByOrderByNameAsc(Pageable pageable);
 
     // Check if a product with that name already exists (to prevent duplicates on create)
     boolean existsByNameIgnoreCase(String name);

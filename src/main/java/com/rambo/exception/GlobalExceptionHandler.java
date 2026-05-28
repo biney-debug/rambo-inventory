@@ -56,8 +56,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
             "Validation failed for one or more fields"
-        );
-        response.setFields(fieldErrors);
+        ).withFields(fieldErrors);
         return ResponseEntity.badRequest().body(response);
     }
 
@@ -69,22 +68,18 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(500, "An unexpected internal error occurred"));
     }
 
-    // Uniform error response body
-    public static class ErrorResponse {
-        private final int status;
-        private final String message;
-        private final LocalDateTime timestamp = LocalDateTime.now();
-        private Map<String, String> fields;
-
+    public record ErrorResponse(
+            int status,
+            String message,
+            LocalDateTime timestamp,
+            Map<String, String> fields
+    ) {
         public ErrorResponse(int status, String message) {
-            this.status  = status;
-            this.message = message;
+            this(status, message, LocalDateTime.now(), null);
         }
 
-        public int getStatus()              { return status; }
-        public String getMessage()          { return message; }
-        public LocalDateTime getTimestamp() { return timestamp; }
-        public Map<String, String> getFields() { return fields; }
-        public void setFields(Map<String, String> fields) { this.fields = fields; }
+        public ErrorResponse withFields(Map<String, String> fields) {
+            return new ErrorResponse(status, message, timestamp, fields);
+        }
     }
 }
