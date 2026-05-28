@@ -990,7 +990,9 @@
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const _h  = window.location.hostname;
-const API = 'http://' + (_h === '' || _h === 'localhost' || _h === '127.0.0.1' ? 'localhost' : _h) + ':8080';
+const API = (_h === '' || _h === 'localhost' || _h === '127.0.0.1')
+  ? 'http://localhost:8080'
+  : 'https://vivacious-tenderness-production-713b.up.railway.app';
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = { productos: [], ventas: [], dashboard: null };
