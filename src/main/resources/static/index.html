@@ -981,10 +981,10 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Producto</th><th>Cant.</th><th>Costo unit.</th><th>Precio unit.</th><th>Ganancia</th><th>Cliente</th>
+            <th>Fecha</th><th>Producto</th><th>Cant.</th><th>Costo unit.</th><th>Precio S/</th><th>Precio $</th><th>Ganancia</th><th>Cliente</th>
           </tr></thead>
           <tbody id="tabla-historial">
-            <tr><td colspan="7"><div class="empty">
+            <tr><td colspan="8"><div class="empty">
               <div class="empty-icon">
                 <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -1466,20 +1466,22 @@ function renderHistorial() {
 
   const tbody = document.getElementById('tabla-historial');
   tbody.innerHTML = ventas.length ? ventas.map(v => {
-    const precioCell = v.currency === 'USD' && v.precioOriginal
-      ? `$${v.precioOriginal.toFixed(2)} <span style="color:var(--muted);font-size:11px">(${fmt(v.precio)})</span>`
-      : fmt(v.precio);
+    const dolarCell = v.currency === 'USD' && v.precioOriginal
+      ? `<span style="color:#1d4ed8;font-weight:600">$${v.precioOriginal.toFixed(2)}</span>` +
+        (v.tasaCambio ? `<span style="color:var(--muted);font-size:10px;display:block">T/C ${v.tasaCambio.toFixed(2)}</span>` : '')
+      : `<span style="color:var(--muted);font-size:11px">—</span>`;
     return `<tr>
       <td data-label="Fecha" style="color:var(--muted);font-size:12px">${v.fecha}</td>
       <td data-label="Producto">${esc(v.nombre)}${v.currency === 'USD' ? '<span class="badge-usd">USD</span>' : ''}</td>
       <td data-label="Cant.">${v.cantidad}</td>
       <td data-label="Costo unit." style="color:var(--muted)">${fmt(v.costo)}</td>
-      <td data-label="Precio unit.">${precioCell}</td>
+      <td data-label="Precio S/">${fmt(v.precio)}</td>
+      <td data-label="Precio $">${dolarCell}</td>
       <td data-label="Ganancia" class="${v.ganancia >= 0 ? 'profit' : 'loss'}">${v.ganancia >= 0 ? '+' : ''}${fmt(v.ganancia)}</td>
       <td data-label="Cliente" style="color:var(--muted)">${esc(v.cliente)}</td>
     </tr>`;
   }).join('')
-  : emptyRow(7, iconClock, filtro === 'mes' ? 'Sin ventas en este período.' : 'Sin registros aún.');
+  : emptyRow(8, iconClock, filtro === 'mes' ? 'Sin ventas en este período.' : 'Sin registros aún.');
 
   const totalInvertido = ventas.reduce((a, v) => a + v.costo * v.cantidad, 0);
   const totalFacturado = ventas.reduce((a, v) => a + v.total, 0);
