@@ -992,7 +992,7 @@
 const _h  = window.location.hostname;
 const API = (_h === '' || _h === 'localhost' || _h === '127.0.0.1')
   ? 'http://localhost:8080'
-  : 'https://vivacious-tenderness-production-713b.up.railway.app';
+  : 'https://' + _h;
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = { productos: [], ventas: [], dashboard: null };
