@@ -64,7 +64,7 @@ HTML Frontend (Capacitor / Android)
 - **Low stock alerts** — flag products at or below their minimum threshold
 - **Business dashboard** — KPIs: revenue, net profit, average margin, top products
 - **Monthly close report** — filter sales history by month/year with period totals
-- **Responsive UI** — works on desktop and mobile; bottom navigation on small screens
+- **Responsive UI** — works on desktop and mobile; bottom navigation on small screens; tables collapse to cards on small screens
 - **Android APK** — packaged via Capacitor for use on a phone at the shop
 
 ---
@@ -76,6 +76,7 @@ Sales and products can be entered in either **PEN (soles)** or **USD (dollars)**
 - The exchange rate is fetched automatically from `currency-api.pages.dev` on page load and can be overridden per session.
 - All amounts are stored internally in PEN for consistent reporting.
 - For USD sales, the original dollar amount, the rate used, and the PEN equivalent are all stored.
+- The header always shows the live exchange rate; on mobile the rate is accessible directly inside the sale form when USD is selected.
 
 **Sale request with USD:**
 ```json
@@ -97,6 +98,16 @@ Sales and products can be entered in either **PEN (soles)** or **USD (dollars)**
   "originalUnitPrice": 50.00
 }
 ```
+
+## UI
+
+The frontend is a single `index.html` served by Spring Boot. Key layout decisions:
+
+- **Header** — three metrics (Capital, Ganancia, Tipo de cambio) in a uniform column layout; exchange rate is an inline editable field, hidden on mobile.
+- **Product form** — 4-column desktop grid: Nombre spans 3 cols, Categoría fills the 4th; second row has Precio compra, Precio venta, Cantidad, Stock mínimo in equal columns. Currency toggle (S//$) sits in the panel title bar and applies to both price fields.
+- **Sales form** — S/|$ toggle next to the price input with a live conversion preview below it.
+- **Tables** — collapse to card layout on screens ≤ 640 px via CSS `data-label` pattern.
+- **History tab** — dedicated Precio S/ and Precio $ columns; USD sales show the original amount in blue with the exchange rate used.
 
 ---
 
