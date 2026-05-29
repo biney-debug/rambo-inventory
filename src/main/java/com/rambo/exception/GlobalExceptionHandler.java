@@ -1,5 +1,6 @@
 package com.rambo.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +43,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArg(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
+    // 400 - @Min/@Max on @RequestParam / @PathVariable (@Validated on controller)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getConstraintViolations().forEach(cv -> {
+            String path = cv.getPropertyPath().toString();
+            String field = path.contains(".") ? path.substring(path.lastIndexOf('.') + 1) : path;
+            fieldErrors.put(field, cv.getMessage());
+        });
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, "Validation failed for one or more fields").withFields(fieldErrors));
     }
 
     // 400 - Bean validation errors (@Valid / @Validated)
