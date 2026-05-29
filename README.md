@@ -88,6 +88,7 @@ HTML Frontend (Capacitor / Android)
 | `GET` | `/api/sales/{id}` | Get a single sale |
 | `GET` | `/api/sales/product/{productId}` | Sales history for a specific product |
 | `POST` | `/api/sales` | Register a new sale (deducts stock automatically) |
+| `DELETE` | `/api/sales/{id}` | Delete a sale (restores stock automatically) |
 
 ### Dashboard — `/api/dashboard`
 
