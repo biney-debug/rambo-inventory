@@ -697,6 +697,62 @@
     .kpi-grid       { grid-template-columns: 1fr 1fr; }
     .logo em        { display: none; }
   }
+
+  /* ── AUTH ────────────────────────────────────── */
+  .btn-auth {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,.4);
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    transition: all .15s;
+    letter-spacing: .3px;
+    white-space: nowrap;
+  }
+  .btn-auth:hover { background: rgba(255,255,255,.22); }
+  .btn-auth-out   { border-color: rgba(255,255,255,.25); opacity: .85; }
+
+  .readonly-banner {
+    background: var(--red-pale);
+    border-bottom: 1px solid var(--border);
+    padding: 9px 20px;
+    font-size: 12px;
+    color: var(--red);
+    text-align: center;
+  }
+  .readonly-banner button {
+    background: none;
+    border: none;
+    color: var(--red);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Sora', sans-serif;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+  .login-field label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: var(--muted);
+  }
 </style>
 </head>
 <body>
@@ -722,6 +778,22 @@
           oninput="saveTasa();updatePreview();updatePreviewProducto()">
       </span>
     </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-left:12px">
+    <button id="btn-login" class="btn-auth" onclick="openLogin()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      Admin
+    </button>
+    <button id="btn-logout" class="btn-auth btn-auth-out" onclick="doLogout()" style="display:none">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+        <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Salir
+    </button>
   </div>
 </header>
 
@@ -753,6 +825,10 @@
     </svg>
     Historial
   </div>
+</div>
+
+<div id="readonly-banner" class="readonly-banner">
+  Modo lectura — <button onclick="openLogin()">Inicia sesión</button> para registrar ventas y editar el inventario
 </div>
 
 <main>
@@ -821,7 +897,7 @@
 
   <!-- INVENTARIO -->
   <section class="section" id="tab-inventario">
-    <div class="panel">
+    <div class="panel admin-only">
       <div class="panel-title" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:8px">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -910,7 +986,7 @@
 
   <!-- VENTAS -->
   <section class="section" id="tab-ventas">
-    <div class="panel">
+    <div class="panel admin-only">
       <div class="panel-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <polyline points="20 12 20 22 4 22 4 12"/>
@@ -1133,6 +1209,33 @@
   </div>
 </div>
 
+<!-- MODAL LOGIN -->
+<div class="overlay" id="login-overlay">
+  <div class="modal">
+    <div class="modal-icon">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+    </div>
+    <h3>Acceso administrador</h3>
+    <p>Ingresa tus credenciales para editar el inventario.</p>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input id="login-user" type="text" autocomplete="username" placeholder="admin">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••">
+    </div>
+    <div id="login-error" style="color:var(--red);font-size:12px;margin-bottom:12px;display:none;text-align:left"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeLogin()">Cancelar</button>
+      <button class="btn-confirm" id="btn-login-submit" onclick="doLogin()">Ingresar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const _h  = window.location.hostname;
@@ -1145,6 +1248,7 @@ let state = { productos: [], ventas: [], dashboard: null };
 let pendingDeleteId      = null;
 let selectedCurrency     = 'PEN';
 let selectedCurrencyProd = 'PEN';
+let isAdmin              = false;
 
 // ─── TIPO DE CAMBIO ───────────────────────────────────────────────────────────
 function getTasa() {
@@ -1219,15 +1323,106 @@ function updatePreviewProducto() {
 // ─── API HELPERS ──────────────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
   const res = await fetch(API + path, {
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options
   });
+  if (res.status === 401) {
+    isAdmin = false;
+    applyAuthState();
+    openLogin();
+    throw new Error('Sesión expirada. Inicia sesión nuevamente.');
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: 'Error ' + res.status }));
     throw new Error(err.message || 'Error ' + res.status);
   }
   if (res.status === 204) return null;
   return res.json();
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+async function checkAuth() {
+  try {
+    const res  = await fetch(API + '/api/auth/me', { credentials: 'include' });
+    const data = await res.json().catch(() => ({}));
+    isAdmin = res.ok && data.authenticated === true;
+  } catch (_) {
+    isAdmin = false;
+  }
+  applyAuthState();
+}
+
+function applyAuthState() {
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+  const loginBtn  = document.getElementById('btn-login');
+  const logoutBtn = document.getElementById('btn-logout');
+  const banner    = document.getElementById('readonly-banner');
+  if (loginBtn)  loginBtn.style.display  = isAdmin ? 'none'   : '';
+  if (logoutBtn) logoutBtn.style.display = isAdmin ? ''       : 'none';
+  if (banner)    banner.style.display    = isAdmin ? 'none'   : '';
+  renderInventario();
+}
+
+function openLogin() {
+  document.getElementById('login-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('login-user').focus(), 80);
+}
+
+function closeLogin() {
+  document.getElementById('login-overlay').classList.remove('show');
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-pass').value = '';
+}
+
+async function doLogin() {
+  const user  = document.getElementById('login-user').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('btn-login-submit');
+
+  if (!user || !pass) {
+    errEl.textContent = 'Ingresa usuario y contraseña.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Ingresando…';
+  try {
+    const res = await fetch(API + '/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass)
+    });
+    if (res.ok) {
+      isAdmin = true;
+      closeLogin();
+      applyAuthState();
+    } else {
+      errEl.textContent = 'Credenciales incorrectas.';
+      errEl.style.display = 'block';
+      document.getElementById('login-pass').value = '';
+      document.getElementById('login-pass').focus();
+    }
+  } catch (_) {
+    errEl.textContent = 'No se pudo conectar con el servidor.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch(API + '/logout', { method: 'POST', credentials: 'include' });
+  } catch (_) {}
+  isAdmin = false;
+  applyAuthState();
 }
 
 function mapProducto(p) {
@@ -1526,7 +1721,7 @@ function renderInventario() {
       <td data-label="Margen" class="profit">+${margen}%</td>
       <td data-label="Stock"><strong>${p.cantidad}</strong></td>
       <td data-label="Estado">${badge}</td>
-      <td data-label=""><button class="btn btn-del" data-id="${p.id}">Eliminar</button></td>
+      <td data-label="">${isAdmin ? `<button class="btn btn-del" data-id="${p.id}">Eliminar</button>` : ''}</td>
     </tr>`;
   }).join('');
 }
@@ -1733,7 +1928,14 @@ function esc(str) {
   fetchTasa(URLS);
 })();
 
-fetchAll().then(() => render());
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('login-user').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-pass').focus();
+});
+
+checkAuth().then(() => fetchAll().then(() => render()));
 </script>
 </body>
 </html>
