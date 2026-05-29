@@ -67,16 +67,54 @@
   .header-stats {
     display: flex;
     align-items: center;
-    gap: 20px;
-    font-size: 11px;
-    color: rgba(255,255,255,.65);
+    gap: 24px;
   }
 
-  .header-stats strong {
-    display: block;
-    color: #fff;
-    font-size: 14px;
+  .header-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .header-stat-label {
+    font-size: 10px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: rgba(255,255,255,.6);
+    line-height: 1;
+  }
+
+  .header-stat-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  /* tasa input looks like plain text — no box */
+  #tasa-cambio {
+    background: none;
+    border: none;
+    border-bottom: 1.5px solid rgba(255,255,255,.35);
+    border-radius: 0;
+    padding: 0 2px;
+    width: 46px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    text-align: right;
+    outline: none;
+    min-height: unset;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  #tasa-cambio:focus {
+    border-bottom-color: #fff;
+    box-shadow: none;
   }
 
   /* ── DESKTOP TABS ─────────────────────────────── */
@@ -558,7 +596,8 @@
     /* hide exchange rate widget from header on mobile — accessible in form */
     .tasa-widget { display: none !important; }
 
-    .header-stats strong { font-size: 12px; }
+    .header-stat-value { font-size: 13px; }
+    .header-stats { gap: 16px; }
 
     .kpi-grid {
       grid-template-columns: 1fr 1fr;
@@ -644,16 +683,20 @@
 <header>
   <div class="logo">RAMBO <em>Inventario</em></div>
   <div class="header-stats">
-    <div>Capital<strong id="h-capital">S/ 0.00</strong></div>
-    <div>Ganancia<strong id="h-ganancia">S/ 0.00</strong></div>
-    <div class="tasa-widget">
-      $ Tipo cambio <span id="tasa-fecha" style="opacity:.5"></span>
-      <strong style="display:flex;align-items:center;gap:4px;margin-top:1px">
-        <span style="font-weight:400;font-size:12px">S/</span>
-        <input id="tasa-cambio" type="number" step="0.01" min="0.01" value="3.75"
-          style="width:58px;height:22px;padding:1px 6px;font-size:14px;font-weight:700;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-family:Sora,sans-serif;text-align:center;outline:none"
+    <div class="header-stat">
+      <span class="header-stat-label">Capital</span>
+      <span class="header-stat-value" id="h-capital">S/ 0.00</span>
+    </div>
+    <div class="header-stat">
+      <span class="header-stat-label">Ganancia</span>
+      <span class="header-stat-value" id="h-ganancia">S/ 0.00</span>
+    </div>
+    <div class="header-stat tasa-widget">
+      <span class="header-stat-label">Tipo de cambio <span id="tasa-fecha"></span></span>
+      <span class="header-stat-value" style="display:flex;align-items:baseline;gap:3px">
+        S/ <input id="tasa-cambio" type="number" step="0.01" min="0.01" value="3.75"
           oninput="saveTasa();updatePreview();updatePreviewProducto()">
-      </strong>
+      </span>
     </div>
   </div>
 </header>
