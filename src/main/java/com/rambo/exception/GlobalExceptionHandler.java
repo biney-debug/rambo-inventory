@@ -8,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -45,7 +46,25 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
-    // 400 - @Min/@Max on @RequestParam / @PathVariable (@Validated on controller)
+    // 400 - @Min/@Max on @RequestParam (Spring 6.1+ HandlerMethodValidationException)
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleMethodValidation(HandlerMethodValidationException ex) {
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getAllValidationResults().forEach(result ->
+            result.getResolvableErrors().forEach(error ->
+                fieldErrors.put(
+                    result.getMethodParameter().getParameterName() != null
+                        ? result.getMethodParameter().getParameterName()
+                        : "param",
+                    error.getDefaultMessage()
+                )
+            )
+        );
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, "Validation failed for one or more fields").withFields(fieldErrors));
+    }
+
+    // 400 - @Min/@Max on @RequestParam / @PathVariable (legacy ConstraintViolationException path)
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
