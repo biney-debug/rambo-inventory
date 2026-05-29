@@ -58,10 +58,45 @@ HTML Frontend (Capacitor / Android)
 
 - **Product inventory** — create, update, restock, and delete products
 - **Sales registration** — record sales with automatic stock deduction
+- **Multi-currency support** — register products and sales in PEN (soles) or USD (dollars); the system converts to PEN at the recorded exchange rate and stores the original amount for a full audit trail
+- **Live exchange rate** — fetches the current USD/PEN rate automatically on page load from a free public API; user can override the rate per transaction
 - **Profit margin calculation** — per product and aggregated across all sales
 - **Low stock alerts** — flag products at or below their minimum threshold
 - **Business dashboard** — KPIs: revenue, net profit, average margin, top products
+- **Monthly close report** — filter sales history by month/year with period totals
+- **Responsive UI** — works on desktop and mobile; bottom navigation on small screens
 - **Android APK** — packaged via Capacitor for use on a phone at the shop
+
+---
+
+## Multi-Currency
+
+Sales and products can be entered in either **PEN (soles)** or **USD (dollars)**.
+
+- The exchange rate is fetched automatically from `currency-api.pages.dev` on page load and can be overridden per session.
+- All amounts are stored internally in PEN for consistent reporting.
+- For USD sales, the original dollar amount, the rate used, and the PEN equivalent are all stored.
+
+**Sale request with USD:**
+```json
+{
+  "productId": 4,
+  "quantity": 1,
+  "currency": "USD",
+  "unitPrice": 50.00,
+  "exchangeRate": 3.40
+}
+```
+
+**Sale response:**
+```json
+{
+  "unitPrice": 170.00,
+  "currency": "USD",
+  "exchangeRateUsed": 3.40,
+  "originalUnitPrice": 50.00
+}
+```
 
 ---
 
@@ -71,20 +106,20 @@ HTML Frontend (Capacitor / Android)
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/products` | List all products (alphabetical) |
+| `GET` | `/api/products` | List all products (alphabetical, paginated) |
 | `GET` | `/api/products/{id}` | Get a single product |
 | `GET` | `/api/products/low-stock` | Products at or below minimum stock |
 | `GET` | `/api/products/category/{category}` | Filter products by category |
 | `POST` | `/api/products` | Create a new product |
 | `PUT` | `/api/products/{id}` | Full update of a product |
 | `PATCH` | `/api/products/{id}/restock?quantity=N` | Add stock without changing other fields |
-| `DELETE` | `/api/products/{id}` | Delete a product |
+| `DELETE` | `/api/products/{id}` | Delete a product (cascades to its sales) |
 
 ### Sales — `/api/sales`
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/sales` | List all sales |
+| `GET` | `/api/sales` | List all sales (paginated) |
 | `GET` | `/api/sales/{id}` | Get a single sale |
 | `GET` | `/api/sales/product/{productId}` | Sales history for a specific product |
 | `POST` | `/api/sales` | Register a new sale (deducts stock automatically) |
@@ -97,6 +132,29 @@ HTML Frontend (Capacitor / Android)
 | `GET` | `/api/dashboard` | Full business summary (KPIs + low stock + top products) |
 
 Interactive API documentation is available at `http://localhost:8080/swagger-ui.html` when the server is running.
+
+---
+
+## Error Responses
+
+All errors follow a consistent shape:
+
+```json
+{
+  "status": 400,
+  "message": "Validation failed for one or more fields",
+  "timestamp": "2026-05-29T07:00:00",
+  "fields": { "quantity": "Minimum quantity is 1" }
+}
+```
+
+| HTTP Status | When |
+|---|---|
+| `400` | Validation failure, missing required fields, invalid argument |
+| `404` | Product or sale not found |
+| `409` | Duplicate product name |
+| `422` | Insufficient stock for requested sale quantity |
+| `500` | Unexpected internal error |
 
 ---
 
@@ -183,6 +241,7 @@ src/main/java/com/rambo/
 │   ├── SaleResponseDTO.java
 │   └── TopProductDTO.java
 ├── entity/
+│   ├── Currency.java
 │   ├── Product.java
 │   └── Sale.java
 ├── exception/
