@@ -99,6 +99,18 @@ Interactive API documentation is available at `http://localhost:8080/swagger-ui.
 
 ---
 
+## Production
+
+| Resource | URL |
+|---|---|
+| **Frontend + API** | https://rambo-inventario.up.railway.app |
+| **Platform** | Railway (Hobby plan) |
+| **Database** | PostgreSQL 16 — managed by Railway |
+
+The frontend (`index.html`) is served directly by Spring Boot from `src/main/resources/static/`. Any push to `main` triggers an automatic redeploy on Railway.
+
+---
+
 ## Running Locally
 
 ### Option A — Docker (recommended)
