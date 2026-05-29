@@ -12,10 +12,8 @@ public class SaleMapper {
 
     private final ModelMapper modelMapper;
 
-    // Entity -> Response DTO
     public SaleResponseDTO toResponseDTO(Sale sale) {
         SaleResponseDTO dto = modelMapper.map(sale, SaleResponseDTO.class);
-        // Product comes from a lazy relationship, must be mapped manually
         dto.setProductId(sale.getProduct().getId());
         dto.setProductName(sale.getProduct().getName());
         return dto;

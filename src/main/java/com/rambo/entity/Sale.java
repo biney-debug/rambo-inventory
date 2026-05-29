@@ -18,7 +18,6 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relationship with Product (many sales can belong to the same product)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
@@ -26,27 +25,36 @@ public class Sale {
     @Column(nullable = false)
     private Integer quantity;
 
-    // Unit price at the time of the sale (may differ from current price)
+    // Unit price stored always in PEN (converted if sale was in USD)
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
-    // Unit cost at the time of the sale (snapshot of purchase price)
     @Column(name = "unit_cost", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitCost;
 
-    // total = unit_price * quantity
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
-    // profit = (unit_price - unit_cost) * quantity
     @Column(name = "profit", nullable = false, precision = 12, scale = 2)
     private BigDecimal profit;
 
-    // Customer is optional
+    // Currency in which the sale was originally entered
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency", nullable = false, length = 3, columnDefinition = "VARCHAR(3) DEFAULT 'PEN'")
+    @Builder.Default
+    private Currency currency = Currency.PEN;
+
+    // Exchange rate used at time of sale (null when currency = PEN)
+    @Column(name = "exchange_rate_used", precision = 10, scale = 4)
+    private BigDecimal exchangeRateUsed;
+
+    // Original unit price in the sale currency before PEN conversion (null when currency = PEN)
+    @Column(name = "original_unit_price", precision = 10, scale = 2)
+    private BigDecimal originalUnitPrice;
+
     @Column(length = 150)
     private String customer;
 
-    // Additional notes (optional)
     @Column(length = 300)
     private String notes;
 
@@ -56,10 +64,8 @@ public class Sale {
     @PrePersist
     protected void onCreate() {
         soldAt = LocalDateTime.now();
-        calculateTotals();
     }
 
-    // Automatically computes totals before persisting
     public void calculateTotals() {
         if (unitPrice != null && quantity != null) {
             totalAmount = unitPrice.multiply(BigDecimal.valueOf(quantity));

@@ -2,6 +2,7 @@ package com.rambo.service.impl;
 
 import com.rambo.dto.SaleRequestDTO;
 import com.rambo.dto.SaleResponseDTO;
+import com.rambo.entity.Currency;
 import com.rambo.entity.Product;
 import com.rambo.entity.Sale;
 import com.rambo.exception.InsufficientStockException;
@@ -34,13 +35,11 @@ public class SaleServiceImpl implements SaleService {
     public SaleResponseDTO register(SaleRequestDTO dto) {
         log.debug("Registering sale for product ID: {}", dto.getProductId());
 
-        // 1. Find the product
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                     "Product not found with ID: " + dto.getProductId()
                 ));
 
-        // 2. Check there is enough stock
         if (product.getStock() < dto.getQuantity()) {
             throw new InsufficientStockException(
                 "Insufficient stock for '" + product.getName() + "'. " +
@@ -48,30 +47,54 @@ public class SaleServiceImpl implements SaleService {
             );
         }
 
-        // 3. Determine the sale price (use the one sent, or fall back to the current product price)
-        BigDecimal salePrice = (dto.getUnitPrice() != null)
-                ? dto.getUnitPrice()
-                : product.getSalePrice();
+        Currency currency = dto.getCurrency() != null ? dto.getCurrency() : Currency.PEN;
 
-        // 4. Build the sale with price snapshots
+        BigDecimal originalUnitPrice = null;
+        BigDecimal exchangeRateUsed  = null;
+        BigDecimal unitPriceInPen;
+
+        if (currency == Currency.USD) {
+            if (dto.getExchangeRate() == null || dto.getExchangeRate().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException(
+                    "Exchange rate is required and must be greater than 0 when currency is USD"
+                );
+            }
+            BigDecimal inputPrice = dto.getUnitPrice() != null
+                    ? dto.getUnitPrice()
+                    : null; // handled below
+
+            if (inputPrice == null) {
+                throw new IllegalArgumentException(
+                    "Unit price in USD is required when currency is USD"
+                );
+            }
+
+            originalUnitPrice = inputPrice;
+            exchangeRateUsed  = dto.getExchangeRate();
+            unitPriceInPen    = inputPrice.multiply(exchangeRateUsed).setScale(2, java.math.RoundingMode.HALF_UP);
+        } else {
+            unitPriceInPen = dto.getUnitPrice() != null ? dto.getUnitPrice() : product.getSalePrice();
+        }
+
         Sale sale = Sale.builder()
                 .product(product)
                 .quantity(dto.getQuantity())
-                .unitPrice(salePrice)
-                .unitCost(product.getPurchasePrice())   // snapshot of the current cost
+                .unitPrice(unitPriceInPen)
+                .unitCost(product.getPurchasePrice())
+                .currency(currency)
+                .exchangeRateUsed(exchangeRateUsed)
+                .originalUnitPrice(originalUnitPrice)
                 .customer(dto.getCustomer())
                 .notes(dto.getNotes())
                 .build();
         sale.calculateTotals();
 
-        // 5. Deduct stock from the product
         product.setStock(product.getStock() - dto.getQuantity());
         productRepository.save(product);
 
-        // 6. Persist the sale
         Sale saved = saleRepository.save(sale);
-        log.info("Sale registered ID: {} | Product: {} | Qty: {} | Total: {}",
-                saved.getId(), product.getName(), dto.getQuantity(), saved.getTotalAmount());
+        log.info("Sale registered ID: {} | Product: {} | Qty: {} | Currency: {} | Total (PEN): {}",
+                saved.getId(), product.getName(), dto.getQuantity(), currency, saved.getTotalAmount());
 
         return saleMapper.toResponseDTO(saved);
     }
