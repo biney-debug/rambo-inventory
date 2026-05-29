@@ -67,23 +67,32 @@
   .header-stats {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 32px;
   }
 
   .header-stat {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    align-items: flex-start;
+    gap: 3px;
   }
 
   .header-stat-label {
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .7px;
-    color: rgba(255,255,255,.6);
+    letter-spacing: .8px;
+    color: rgba(255,255,255,.55);
     line-height: 1;
+  }
+
+  .header-stat-label .tasa-date {
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: .7;
+    margin-left: 3px;
   }
 
   .header-stat-value {
@@ -91,30 +100,20 @@
     font-weight: 700;
     color: #fff;
     line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
   }
 
-  /* tasa input looks like plain text — no box */
+  /* tasa input — invisible box, looks like plain value text */
   #tasa-cambio {
-    background: none;
-    border: none;
-    border-bottom: 1.5px solid rgba(255,255,255,.35);
-    border-radius: 0;
-    padding: 0 2px;
-    width: 46px;
+    all: unset;
     font-size: 15px;
     font-weight: 700;
     color: #fff;
     font-family: 'Sora', sans-serif;
-    text-align: right;
-    outline: none;
-    min-height: unset;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  #tasa-cambio:focus {
-    border-bottom-color: #fff;
-    box-shadow: none;
+    width: 44px;
+    cursor: text;
   }
 
   /* ── DESKTOP TABS ─────────────────────────────── */
@@ -692,8 +691,10 @@
       <span class="header-stat-value" id="h-ganancia">S/ 0.00</span>
     </div>
     <div class="header-stat tasa-widget">
-      <span class="header-stat-label">Tipo de cambio <span id="tasa-fecha"></span></span>
-      <span class="header-stat-value" style="display:flex;align-items:baseline;gap:3px">
+      <span class="header-stat-label">
+        Tipo de cambio<span class="tasa-date" id="tasa-fecha"></span>
+      </span>
+      <span class="header-stat-value">
         S/ <input id="tasa-cambio" type="number" step="0.01" min="0.01" value="3.75"
           oninput="saveTasa();updatePreview();updatePreviewProducto()">
       </span>
