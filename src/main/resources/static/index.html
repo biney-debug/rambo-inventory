@@ -550,9 +550,12 @@
     }
 
     .header-stats {
-      gap: 14px;
+      gap: 10px;
       font-size: 10px;
     }
+
+    /* hide exchange rate widget from header on mobile — accessible in form */
+    .tasa-widget { display: none !important; }
 
     .header-stats strong { font-size: 12px; }
 
@@ -642,7 +645,7 @@
   <div class="header-stats">
     <div>Capital<strong id="h-capital">S/ 0.00</strong></div>
     <div>Ganancia<strong id="h-ganancia">S/ 0.00</strong></div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+    <div class="tasa-widget" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
       <div style="display:flex;align-items:center;gap:4px">
         <span style="font-size:10px;opacity:.65;letter-spacing:.5px">$ TIPO CAMBIO</span>
         <span id="tasa-fecha" style="font-size:9px;opacity:.5"></span>
@@ -651,7 +654,7 @@
         <span style="font-size:11px;opacity:.75">S/</span>
         <input id="tasa-cambio" type="number" step="0.01" min="0.01" value="3.75"
           style="width:56px;height:24px;padding:2px 6px;font-size:13px;font-weight:700;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-family:Sora,sans-serif;text-align:center;outline:none"
-          oninput="saveTasa();updatePreview()">
+          oninput="saveTasa();updatePreview();updatePreviewProducto()">
       </div>
     </div>
   </div>
@@ -779,13 +782,24 @@
             <option>Otros</option>
           </select>
         </div>
-        <div class="field">
-          <label>Precio compra (S/)</label>
-          <input id="p-costo" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+        <div class="field" style="grid-column: 1 / -1">
+          <label style="display:flex;align-items:center;justify-content:space-between">
+            <span>Moneda de precios</span>
+            <div class="currency-toggle" style="height:36px">
+              <button id="p-btn-pen" class="active" onclick="setCurrencyProducto('PEN')" style="font-size:13px;padding:0 14px">S/</button>
+              <button id="p-btn-usd" onclick="setCurrencyProducto('USD')" style="font-size:13px;padding:0 14px">$</button>
+            </div>
+          </label>
         </div>
         <div class="field">
-          <label>Precio venta (S/)</label>
-          <input id="p-precio" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+          <label id="p-costo-label">Precio compra (S/)</label>
+          <input id="p-costo" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" oninput="updatePreviewProducto()">
+          <div id="p-costo-preview" class="currency-preview"></div>
+        </div>
+        <div class="field">
+          <label id="p-precio-label">Precio venta (S/)</label>
+          <input id="p-precio" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" oninput="updatePreviewProducto()">
+          <div id="p-precio-preview" class="currency-preview"></div>
         </div>
         <div class="field">
           <label>Cantidad</label>
@@ -865,6 +879,11 @@
           </div>
           <div id="v-preview" class="currency-preview"></div>
         </div>
+        <div class="field tasa-movil" id="v-tasa-field" style="display:none">
+          <label>Tipo de cambio (S/ por $1)</label>
+          <input id="v-tasa-movil" type="number" step="0.01" min="0.01" placeholder="3.75" inputmode="decimal"
+            oninput="document.getElementById('tasa-cambio').value=this.value;saveTasa();updatePreview()">
+        </div>
         <div class="field">
           <label>Cliente (opcional)</label>
           <input id="v-cliente" type="text" placeholder="Nombre o teléfono">
@@ -891,10 +910,10 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Producto</th><th>Cant.</th><th>Precio unit.</th><th>Total</th><th>Ganancia</th><th>Moneda</th><th>Cliente</th>
+            <th>Fecha</th><th>Producto</th><th>Cant.</th><th>Precio unit.</th><th>Total</th><th>Ganancia</th><th>Cliente</th>
           </tr></thead>
           <tbody id="tabla-ventas">
-            <tr><td colspan="8"><div class="empty">
+            <tr><td colspan="7"><div class="empty">
               <div class="empty-icon">
                 <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
@@ -1061,8 +1080,9 @@ const API = (_h === '' || _h === 'localhost' || _h === '127.0.0.1')
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = { productos: [], ventas: [], dashboard: null };
-let pendingDeleteId  = null;
-let selectedCurrency = 'PEN';
+let pendingDeleteId      = null;
+let selectedCurrency     = 'PEN';
+let selectedCurrencyProd = 'PEN';
 
 // ─── TIPO DE CAMBIO ───────────────────────────────────────────────────────────
 function getTasa() {
@@ -1077,13 +1097,22 @@ function setCurrency(c) {
   selectedCurrency = c;
   document.getElementById('btn-pen').classList.toggle('active', c === 'PEN');
   document.getElementById('btn-usd').classList.toggle('active', c === 'USD');
+
+  const tasaField = document.getElementById('v-tasa-field');
+  if (tasaField) {
+    const isMobile = window.innerWidth <= 640;
+    tasaField.style.display = (c === 'USD' && isMobile) ? 'flex' : 'none';
+    if (c === 'USD') {
+      const movilInput = document.getElementById('v-tasa-movil');
+      if (movilInput) movilInput.value = getTasa().toFixed(2);
+    }
+  }
+
   const p = state.productos.find(x => String(x.id) === document.getElementById('v-producto').value);
   if (p) {
-    if (c === 'USD') {
-      document.getElementById('v-precio').value = (p.precio / getTasa()).toFixed(2);
-    } else {
-      document.getElementById('v-precio').value = p.precio.toFixed(2);
-    }
+    document.getElementById('v-precio').value = c === 'USD'
+      ? (p.precio / getTasa()).toFixed(2)
+      : p.precio.toFixed(2);
   }
   updatePreview();
 }
@@ -1098,6 +1127,31 @@ function updatePreview() {
   } else {
     preview.textContent = '';
   }
+}
+
+function setCurrencyProducto(c) {
+  selectedCurrencyProd = c;
+  document.getElementById('p-btn-pen').classList.toggle('active', c === 'PEN');
+  document.getElementById('p-btn-usd').classList.toggle('active', c === 'USD');
+  const lbl = c === 'USD' ? '($)' : '(S/)';
+  document.getElementById('p-costo-label').textContent  = 'Precio compra ' + lbl;
+  document.getElementById('p-precio-label').textContent = 'Precio venta '  + lbl;
+  updatePreviewProducto();
+}
+
+function updatePreviewProducto() {
+  if (selectedCurrencyProd !== 'USD') {
+    document.getElementById('p-costo-preview').textContent  = '';
+    document.getElementById('p-precio-preview').textContent = '';
+    return;
+  }
+  const tasa = getTasa();
+  ['p-costo', 'p-precio'].forEach(id => {
+    const val = parseFloat(document.getElementById(id).value);
+    const previewId = id + '-preview';
+    document.getElementById(previewId).textContent =
+      (!isNaN(val) && val > 0) ? '= S/ ' + (val * tasa).toFixed(2) : '';
+  });
 }
 
 // ─── API HELPERS ──────────────────────────────────────────────────────────────
@@ -1258,14 +1312,22 @@ function fmtShort(n) { return 'S/ ' + Number(n).toFixed(0); }
 async function agregarProducto() {
   const nombre   = document.getElementById('p-nombre').value.trim();
   const cat      = document.getElementById('p-cat').value;
-  const costo    = parseFloat(document.getElementById('p-costo').value);
-  const precio   = parseFloat(document.getElementById('p-precio').value);
   const cantidad = parseInt(document.getElementById('p-cantidad').value) || 1;
   const minimo   = parseInt(document.getElementById('p-minimo').value) || 2;
+
+  let costo  = parseFloat(document.getElementById('p-costo').value);
+  let precio = parseFloat(document.getElementById('p-precio').value);
 
   if (!nombre || isNaN(costo) || isNaN(precio)) {
     alert('Complete nombre, precio de compra y precio de venta.');
     return;
+  }
+
+  if (selectedCurrencyProd === 'USD') {
+    const tasa = getTasa();
+    if (!tasa || tasa <= 0) { alert('Tipo de cambio inválido.'); return; }
+    costo  = parseFloat((costo  * tasa).toFixed(2));
+    precio = parseFloat((precio * tasa).toFixed(2));
   }
 
   setBtn('btn-agregar', true);
@@ -1296,6 +1358,7 @@ async function agregarProducto() {
     ['p-nombre', 'p-costo', 'p-precio', 'p-cantidad', 'p-minimo'].forEach(i => {
       document.getElementById(i).value = '';
     });
+    setCurrencyProducto('PEN');
   } catch (e) {
     showError('No se pudo guardar el producto: ' + e.message);
   } finally {
@@ -1410,27 +1473,22 @@ function renderVentas() {
   const tbody     = document.getElementById('tabla-ventas');
   const recientes = [...state.ventas].reverse().slice(0, 30);
   if (!recientes.length) {
-    tbody.innerHTML = emptyRow(8, iconCart, 'Aún no hay ventas registradas.');
+    tbody.innerHTML = emptyRow(7, iconCart, 'Aún no hay ventas registradas.');
     return;
   }
   tbody.innerHTML = recientes.map(v => {
-    const usdBadge = v.currency === 'USD'
-      ? `<span class="badge-usd">USD</span>`
-      : '';
     const precioCell = v.currency === 'USD' && v.precioOriginal
-      ? `$${v.precioOriginal.toFixed(2)} <span style="color:var(--muted);font-size:11px">(${fmt(v.precio)})</span>`
+      ? `<span style="color:#1d4ed8;font-weight:600">$${v.precioOriginal.toFixed(2)}</span>` +
+        `<span style="color:var(--muted);font-size:11px;display:block">${fmt(v.precio)}` +
+        (v.tasaCambio ? ` · T/C ${v.tasaCambio.toFixed(2)}` : '') + `</span>`
       : fmt(v.precio);
-    const monedaCell = v.currency === 'USD'
-      ? `<span class="badge-usd">$</span> <span style="color:var(--muted);font-size:11px">${v.tasaCambio ? 'T/C ' + v.tasaCambio.toFixed(2) : ''}</span>`
-      : `<span style="color:var(--muted);font-size:11px">S/</span>`;
     return `<tr>
       <td data-label="Fecha" style="color:var(--muted);font-size:12px">${v.fecha}</td>
-      <td data-label="Producto">${esc(v.nombre)}${usdBadge}</td>
+      <td data-label="Producto">${esc(v.nombre)}${v.currency === 'USD' ? '<span class="badge-usd">USD</span>' : ''}</td>
       <td data-label="Cant.">${v.cantidad}</td>
       <td data-label="Precio unit.">${precioCell}</td>
       <td data-label="Total"><strong>${fmt(v.total)}</strong></td>
       <td data-label="Ganancia" class="${v.ganancia >= 0 ? 'profit' : 'loss'}">${v.ganancia >= 0 ? '+' : ''}${fmt(v.ganancia)}</td>
-      <td data-label="Moneda">${monedaCell}</td>
       <td data-label="Cliente" style="color:var(--muted)">${esc(v.cliente)}</td>
     </tr>`;
   }).join('');
@@ -1603,8 +1661,6 @@ function esc(str) {
         const tasa = pen.toFixed(4);
         document.getElementById('tasa-cambio').value = tasa;
         localStorage.setItem('rambo_tasa', tasa);
-        const label = document.querySelector('[style*="TIPO CAMBIO"]') ||
-          document.getElementById('tasa-cambio').closest('div')?.previousElementSibling;
         const fechaEl = document.getElementById('tasa-fecha');
         if (fechaEl) fechaEl.textContent = '• ' + (data.date || 'hoy');
         return;
