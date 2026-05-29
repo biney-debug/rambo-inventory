@@ -616,14 +616,15 @@
     .header-stat-value { font-size: 13px; }
     .header-stats { gap: 12px; }
 
-    /* auth buttons: icon-only with proper 40px tap target */
+    /* auth buttons: icon-only with proper tap target */
     .btn-auth-label { display: none; }
     .btn-auth {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       padding: 0;
       justify-content: center;
     }
+    .btn-auth svg { width: 20px; height: 20px; }
 
     /* readonly banner: compact */
     .readonly-banner { padding: 8px 14px; font-size: 11px; }
@@ -723,8 +724,8 @@
   .btn-auth {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 12px;
+    gap: 7px;
+    padding: 7px 13px;
     border-radius: 7px;
     font-family: 'Sora', sans-serif;
     font-size: 11px;
@@ -739,6 +740,7 @@
   }
   .btn-auth:hover { background: rgba(255,255,255,.22); }
   .btn-auth-out   { border-color: rgba(255,255,255,.25); opacity: .85; }
+  .btn-auth svg   { width: 15px; height: 15px; flex-shrink: 0; }
 
   .readonly-banner {
     background: var(--red-pale);
