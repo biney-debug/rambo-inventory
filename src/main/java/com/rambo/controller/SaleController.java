@@ -45,4 +45,10 @@ public class SaleController {
     public ResponseEntity<SaleResponseDTO> register(@Valid @RequestBody SaleRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(saleService.register(dto));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        saleService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

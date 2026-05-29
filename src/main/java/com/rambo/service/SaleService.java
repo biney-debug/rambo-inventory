@@ -16,4 +16,6 @@ public interface SaleService {
     Page<SaleResponseDTO> findAll(Pageable pageable);
 
     List<SaleResponseDTO> findByProduct(Long productId);
+
+    void delete(Long id);
 }

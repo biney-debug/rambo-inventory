@@ -7,6 +7,7 @@ import com.rambo.exception.ConflictException;
 import com.rambo.exception.ResourceNotFoundException;
 import com.rambo.mapper.ProductMapper;
 import com.rambo.repository.ProductRepository;
+import com.rambo.repository.SaleRepository;
 import com.rambo.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final SaleRepository saleRepository;
 
     @Override
     @Transactional
@@ -113,8 +115,9 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void delete(Long id) {
         Product product = findOrThrow(id);
+        saleRepository.deleteByProductId(id);
         productRepository.delete(product);
-        log.info("Product ID {} deleted", id);
+        log.info("Product ID {} and its sales deleted", id);
     }
 
     // Private helper: finds product or throws 404

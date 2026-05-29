@@ -72,4 +72,6 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     // Total number of transactions
     @Query("SELECT COUNT(s) FROM Sale s")
     Long countTotalTransactions();
+
+    void deleteByProductId(Long productId);
 }

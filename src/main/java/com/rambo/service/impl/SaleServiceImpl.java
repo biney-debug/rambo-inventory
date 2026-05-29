@@ -105,4 +105,16 @@ public class SaleServiceImpl implements SaleService {
                 .map(saleMapper::toResponseDTO)
                 .toList();
     }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        Sale sale = saleRepository.findByIdWithProduct(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with ID: " + id));
+        Product product = sale.getProduct();
+        product.setStock(product.getStock() + sale.getQuantity());
+        productRepository.save(product);
+        saleRepository.delete(sale);
+        log.info("Sale ID {} deleted, stock restored for product ID {}", id, product.getId());
+    }
 }
