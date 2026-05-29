@@ -239,6 +239,32 @@
     margin-bottom: 14px;
   }
 
+  /* ── PRODUCT FORM GRID (explicit 4-col desktop) ── */
+  .prod-form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .prod-form-grid .span-3 { grid-column: span 3; }
+
+  .prod-form-grid .field label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .prod-form-grid .currency-toggle {
+    height: 28px;
+    border-radius: 7px;
+  }
+
+  .prod-form-grid .currency-toggle button {
+    font-size: 12px;
+    padding: 0 11px;
+  }
+
   .field { display: flex; flex-direction: column; gap: 5px; }
 
   .field label {
@@ -610,6 +636,13 @@
       gap: 10px;
     }
 
+    .prod-form-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .prod-form-grid .span-3 { grid-column: 1 / -1; }
+
     .btn { width: 100%; }
 
     /* ── TABLE → CARDS on mobile ── */
@@ -670,9 +703,10 @@
   }
 
   @media (max-width: 420px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .kpi-grid  { grid-template-columns: 1fr 1fr; }
-    .logo em   { display: none; }
+    .form-grid      { grid-template-columns: 1fr; }
+    .prod-form-grid { grid-template-columns: 1fr; }
+    .kpi-grid       { grid-template-columns: 1fr 1fr; }
+    .logo em        { display: none; }
   }
 </style>
 </head>
@@ -806,8 +840,8 @@
         </svg>
         Agregar / Reponer producto
       </div>
-      <div class="form-grid">
-        <div class="field">
+      <div class="prod-form-grid">
+        <div class="field span-3">
           <label>Nombre del producto</label>
           <input id="p-nombre" type="text" placeholder="Ej: Barra de dirección">
         </div>
@@ -824,22 +858,19 @@
             <option>Otros</option>
           </select>
         </div>
-        <div class="field" style="grid-column: 1 / -1">
-          <label style="display:flex;align-items:center;justify-content:space-between">
-            <span>Moneda de precios</span>
-            <div class="currency-toggle" style="height:36px">
-              <button id="p-btn-pen" class="active" onclick="setCurrencyProducto('PEN')" style="font-size:13px;padding:0 14px">S/</button>
-              <button id="p-btn-usd" onclick="setCurrencyProducto('USD')" style="font-size:13px;padding:0 14px">$</button>
+        <div class="field">
+          <label id="p-costo-label">
+            <span>Precio compra</span>
+            <div class="currency-toggle">
+              <button id="p-btn-pen" class="active" onclick="setCurrencyProducto('PEN')">S/</button>
+              <button id="p-btn-usd" onclick="setCurrencyProducto('USD')">$</button>
             </div>
           </label>
-        </div>
-        <div class="field">
-          <label id="p-costo-label">Precio compra (S/)</label>
           <input id="p-costo" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" oninput="updatePreviewProducto()">
           <div id="p-costo-preview" class="currency-preview"></div>
         </div>
         <div class="field">
-          <label id="p-precio-label">Precio venta (S/)</label>
+          <label id="p-precio-label">Precio venta</label>
           <input id="p-precio" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" oninput="updatePreviewProducto()">
           <div id="p-precio-preview" class="currency-preview"></div>
         </div>
